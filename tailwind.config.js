@@ -17,6 +17,7 @@ export default {
         serif: ['"Cormorant Garamond"', 'serif'],
         sans: ['"Jost"', 'sans-serif'],
         script: ['"Great Vibes"', 'cursive'],
+        mono: ['"IBM Plex Mono"', 'monospace'],
       },
     },
   },

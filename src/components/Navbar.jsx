@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
+import Monogram from './Monogram.jsx'
 
 const links = [
-  { id: 'home', label: 'Home' },
-  { id: 'story', label: 'Our Story' },
-  { id: 'details', label: 'Details' },
-  { id: 'gallery', label: 'Gallery' },
-  { id: 'rsvp', label: 'RSVP' },
+  { id: 'home', label: 'Home', num: '01' },
+  { id: 'story', label: 'Welcome', num: '02' },
+  { id: 'details', label: 'Details', num: '03' },
+  { id: 'gallery', label: 'Gallery', num: '04' },
+  { id: 'rsvp', label: 'RSVP', num: '05' },
 ]
 
 function scrollToSection(id) {
@@ -19,9 +20,6 @@ export default function Navbar() {
   useEffect(() => {
     const heroEl = document.getElementById('home')
     if (!heroEl) return
-
-    // Switches as soon as the hero has scrolled ~85% out of view,
-    // so the change happens just before text would become unreadable.
     const observer = new IntersectionObserver(
       ([entry]) => setOverHero(entry.intersectionRatio > 0.15),
       { threshold: [0, 0.15, 1] }
@@ -30,7 +28,7 @@ export default function Navbar() {
     return () => observer.disconnect()
   }, [])
 
-  const isDark = overHero // true = over hero photo, light text; false = over honeydew, dark text
+  const isDark = overHero
 
   const handleLinkClick = (id) => {
     setOpen(false)
@@ -40,41 +38,27 @@ export default function Navbar() {
   return (
     <>
       <div
-        className={`fixed top-0 left-0 right-0 z-20 flex items-center justify-between px-6 py-6 transition-colors duration-300 md:px-12 ${
-          isDark ? '' : 'bg-honeydew/90 backdrop-blur-sm shadow-sm'
+        className={`fixed top-0 left-0 right-0 z-20 flex items-center justify-between border-b px-6 py-6 transition-colors duration-300 md:px-12 ${
+          isDark
+            ? 'border-honeydew/20'
+            : 'border-forest/15 bg-honeydew/95 backdrop-blur-sm'
         }`}
       >
-        <button
-          onClick={() => handleLinkClick('home')}
-          className={`font-serif text-xl tracking-wide transition-colors duration-300 ${
-            isDark ? 'text-honeydew' : 'text-forest'
-          }`}
-        >
-          A &amp; S
-        </button>
+        <Monogram dark={isDark} onClick={() => handleLinkClick('home')} />
 
         <button
           type="button"
           aria-label={open ? 'Close menu' : 'Open menu'}
           onClick={() => setOpen(!open)}
-          className={`flex h-12 w-12 flex-col items-center justify-center gap-1.5 rounded-full border transition-colors duration-300 hover:border-celadon ${
-            isDark ? 'border-honeydew/60' : 'border-forest/50'
+          className={`flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] transition-colors duration-300 ${
+            isDark ? 'text-honeydew' : 'text-forest'
           }`}
         >
+          {open ? 'Close' : 'Menu'}
           <span
-            className={`block h-px w-5 transition-transform duration-300 ${
+            className={`inline-block h-px w-6 transition-colors duration-300 ${
               isDark ? 'bg-honeydew' : 'bg-forest'
-            } ${open ? 'translate-y-[7px] rotate-45' : ''}`}
-          />
-          <span
-            className={`block h-px w-5 transition-opacity duration-200 ${
-              isDark ? 'bg-honeydew' : 'bg-forest'
-            } ${open ? 'opacity-0' : ''}`}
-          />
-          <span
-            className={`block h-px w-5 transition-transform duration-300 ${
-              isDark ? 'bg-honeydew' : 'bg-forest'
-            } ${open ? '-translate-y-[7px] -rotate-45' : ''}`}
+            }`}
           />
         </button>
       </div>
@@ -84,24 +68,24 @@ export default function Navbar() {
           open ? 'visible opacity-100' : 'invisible opacity-0'
         }`}
       >
-        <ul className="text-center">
+        <ul className="w-full max-w-md px-6">
           {links.map((link, i) => (
-            <li key={link.id} className="my-3 overflow-hidden">
+            <li key={link.id} className="overflow-hidden border-b border-honeydew/15">
               <button
                 onClick={() => handleLinkClick(link.id)}
                 style={{ transitionDelay: open ? `${i * 60}ms` : '0ms' }}
-                className={`inline-block font-serif text-4xl text-honeydew transition-all duration-500 hover:text-celadon md:text-6xl ${
+                className={`flex w-full items-center justify-between py-5 transition-all duration-500 hover:pl-3 ${
                   open ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
                 }`}
               >
-                {link.label}
+                <span className="font-mono text-xs text-celadon">{link.num}</span>
+                <span className="font-serif text-3xl text-honeydew md:text-4xl">
+                  {link.label}
+                </span>
               </button>
             </li>
           ))}
         </ul>
-        <p className="absolute bottom-10 text-sm tracking-widest text-tea">
-          Aria &amp; Sam · 12th December 2026
-        </p>
       </div>
     </>
   )

@@ -2,36 +2,28 @@ import Section from '../components/Section.jsx'
 
 export default function OurStory() {
   return (
-    <Section bg="honeydew">
-      <div className="text-center">
-        <p className="font-script text-6xl text-forest md:text-7xl">
-          Welcome
-        </p>
-        <div className="mx-auto mt-4 h-px w-16 bg-celadon" />
-      </div>
-
-      <div className="mx-auto mt-14 max-w-xl text-center">
+    <Section bg="honeydew" index="02" label="Welcome">
+      <div className="grid gap-px border border-forest/20 bg-forest/20 md:grid-cols-2">
         <div
-          className="mx-auto h-64 w-full max-w-md rounded-sm bg-cover bg-center md:h-80"
+          className="h-64 bg-cover bg-center md:h-full"
           style={{
             backgroundImage:
               "url('https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?q=80&w=1200&auto=format&fit=crop')",
           }}
         />
-
-        <p className="mt-10 font-serif text-2xl leading-relaxed text-forest md:text-3xl">
-          We're so grateful you're part of our story.
-        </p>
-
-        <p className="mt-6 leading-relaxed text-ink/85">
-          We can't wait to celebrate this new beginning surrounded by the
-          people who mean the most to us. Thank you for being here, for your
-          love, and for the memories we're about to make together.
-        </p>
-
-        <p className="mt-10 font-script text-4xl text-forest md:text-5xl">
-          With love, Aria &amp; Sam
-        </p>
+        <div className="bg-honeydew p-8 md:p-12">
+          <p className="font-serif text-3xl leading-tight text-forest md:text-4xl">
+            We're so grateful you're part of our story.
+          </p>
+          <p className="mt-6 text-sm leading-relaxed text-ink/80">
+            We can't wait to celebrate this new beginning surrounded by the
+            people who mean the most to us. Thank you for being here, for
+            your love, and for the memories we're about to make together.
+          </p>
+          <p className="mt-8 font-mono text-xs uppercase tracking-[0.25em] text-forest/70">
+            — Litty &amp; Felix
+          </p>
+        </div>
       </div>
     </Section>
   )

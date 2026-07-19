@@ -1,16 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import Section from '../components/Section.jsx'
+import FloatingScene3D from '../components/FloatingScene3D.jsx'
 
-const WEDDING_DATE = new Date('2026-12-12T10:00:00')
+const WEDDING_DATE = new Date('2027-01-02T10:00:00')
 
 function useCountdown(targetDate) {
   const [daysLeft, setDaysLeft] = useState(getDays(targetDate))
-
   useEffect(() => {
     const id = setInterval(() => setDaysLeft(getDays(targetDate)), 1000 * 60 * 60)
     return () => clearInterval(id)
   }, [targetDate])
-
   return daysLeft
 }
 
@@ -23,24 +23,133 @@ function scrollToSection(id) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 }
 
-function TeaserCard({ target, image, title, blurb }) {
+// Drifting leaf-like particles, purely decorative, for the "wandering" feel.
+function FloatingParticles() {
+  const particles = Array.from({ length: 10 })
   return (
-    <button
-      onClick={() => scrollToSection(target)}
-      className="group block overflow-hidden rounded-sm border border-celadon/40 bg-white/40 text-left transition-colors hover:border-forest"
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {particles.map((_, i) => {
+        const left = (i * 97) % 100
+        const delay = (i * 1.7) % 8
+        const duration = 14 + (i % 5) * 3
+        const size = 4 + (i % 3) * 2
+        return (
+          <motion.span
+            key={i}
+            className="absolute rounded-full bg-celadon/50"
+            style={{ left: `${left}%`, width: size, height: size, bottom: -20 }}
+            animate={{
+              y: ['0vh', '-110vh'],
+              x: [0, i % 2 === 0 ? 30 : -30, 0],
+              opacity: [0, 0.8, 0],
+            }}
+            transition={{
+              duration,
+              delay,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
+// Hero background + text drift at different speeds as the mouse moves,
+// creating a subtle layered-depth (parallax) effect.
+function ParallaxHero({ daysLeft }) {
+  const ref = useRef(null)
+  const mx = useMotionValue(0)
+  const my = useMotionValue(0)
+  const springX = useSpring(mx, { stiffness: 60, damping: 20 })
+  const springY = useSpring(my, { stiffness: 60, damping: 20 })
+
+  const bgX = useTransform(springX, [-1, 1], [-18, 18])
+  const bgY = useTransform(springY, [-1, 1], [-14, 14])
+  const textX = useTransform(springX, [-1, 1], [-8, 8])
+  const textY = useTransform(springY, [-1, 1], [-6, 6])
+
+  const handleMouseMove = (e) => {
+    const rect = ref.current.getBoundingClientRect()
+    const px = (e.clientX - rect.left) / rect.width - 0.5
+    const py = (e.clientY - rect.top) / rect.height - 0.5
+    mx.set(px * 2)
+    my.set(py * 2)
+  }
+
+  return (
+    <div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      className="relative flex h-screen min-h-[640px] flex-col justify-between overflow-hidden px-6 py-28 md:px-12"
     >
-      <div
-        className="h-56 w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-        style={{ backgroundImage: `url(${image})` }}
+      <motion.div
+        className="absolute -inset-6 bg-cover bg-center"
+        style={{
+          x: bgX,
+          y: bgY,
+          backgroundImage:
+            "linear-gradient(180deg, rgba(20,40,20,0.4), rgba(20,40,20,0.55)), url('https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1600&auto=format&fit=crop')",
+        }}
       />
-      <div className="p-6">
-        <p className="font-serif text-2xl text-forest">{title}</p>
-        <p className="mt-2 text-sm text-ink/80">{blurb}</p>
-        <p className="mt-4 text-xs uppercase tracking-widest text-forest/80 group-hover:text-forest">
-          Scroll down →
+
+      <FloatingScene3D />
+
+      <div />
+
+      <motion.div style={{ x: textX, y: textY }} className="relative max-w-3xl text-honeydew">
+        <p className="font-mono text-xs uppercase tracking-[0.3em] opacity-80">
+          01 / We're getting married
         </p>
+        <h1 className="mt-4 font-serif text-6xl font-medium leading-[0.95] md:text-8xl">
+          Litty &amp; Felix
+        </h1>
+      </motion.div>
+
+      <div className="relative flex flex-wrap items-end justify-between gap-4 border-t border-honeydew/25 pt-6 font-mono text-xs uppercase tracking-[0.2em] text-honeydew/85">
+        <span>02 / 01 / 2027</span>
+        <span>Pallippuram, Cherthala</span>
+        <span>{daysLeft} days remaining</span>
       </div>
-    </button>
+    </div>
+  )
+}
+
+// 3D tilt-on-hover teaser card.
+function TeaserCard({ target, num, title, blurb }) {
+  const ref = useRef(null)
+  const mx = useMotionValue(0)
+  const my = useMotionValue(0)
+  const rotateX = useSpring(useTransform(my, [-0.5, 0.5], [8, -8]), { stiffness: 200, damping: 20 })
+  const rotateY = useSpring(useTransform(mx, [-0.5, 0.5], [-8, 8]), { stiffness: 200, damping: 20 })
+
+  const handleMouseMove = (e) => {
+    const rect = ref.current.getBoundingClientRect()
+    mx.set((e.clientX - rect.left) / rect.width - 0.5)
+    my.set((e.clientY - rect.top) / rect.height - 0.5)
+  }
+  const handleMouseLeave = () => {
+    mx.set(0)
+    my.set(0)
+  }
+
+  return (
+    <motion.button
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      onClick={() => scrollToSection(target)}
+      style={{ rotateX, rotateY, transformPerspective: 800 }}
+      className="group border border-forest/20 bg-honeydew p-6 text-left transition-colors hover:border-forest"
+    >
+      <span className="font-mono text-xs text-forest/50">{num}</span>
+      <p className="mt-3 font-serif text-2xl text-forest">{title}</p>
+      <p className="mt-2 text-sm text-ink/75">{blurb}</p>
+      <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.2em] text-forest/70 group-hover:text-forest">
+        Explore →
+      </p>
+    </motion.button>
   )
 }
 
@@ -49,62 +158,26 @@ export default function Home() {
 
   return (
     <div>
-      <div
-        className="relative flex h-screen min-h-[640px] items-center justify-center bg-cover bg-center text-center"
-        style={{
-          backgroundImage:
-            "linear-gradient(180deg, rgba(20,40,20,0.35), rgba(20,40,20,0.55)), url('https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1600&auto=format&fit=crop')",
-        }}
-      >
-        <div className="px-6 text-honeydew">
-          <p className="mb-4 font-script text-4xl text-honeydew/95 md:text-5xl">
-            We're getting married
-          </p>
-          <h1 className="font-serif text-6xl font-medium leading-tight md:text-8xl">
-            Aria &amp; Sam
-          </h1>
-          <p className="mt-5 text-sm tracking-[0.2em] opacity-90">
-            12 · 12 · 2026 &nbsp;·&nbsp; Kerala, India
-          </p>
-        </div>
-        <p className="absolute bottom-8 text-xs tracking-[0.2em] text-honeydew/80">
-          Scroll to explore
-        </p>
-      </div>
+      <ParallaxHero daysLeft={daysLeft} />
 
-      <Section bg="honeydew" className="text-center">
-        <p className="mx-auto max-w-2xl font-serif text-2xl leading-relaxed text-ink md:text-3xl">
+      <Section bg="honeydew" index="—" label="Welcome note">
+        <motion.p
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="max-w-2xl font-serif text-2xl leading-relaxed text-ink md:text-3xl"
+        >
           We can't wait to celebrate this new chapter surrounded by the people
           we love most. Here's everything you need to join us.
-        </p>
+        </motion.p>
       </Section>
 
-      <div className="bg-tea py-6 text-center">
-        <p className="font-serif text-xl text-forest md:text-2xl">
-          {daysLeft} {daysLeft === 1 ? 'day' : 'days'} to go
-        </p>
-      </div>
-
-      <Section bg="honeydew">
-        <div className="grid gap-8 md:grid-cols-3">
-          <TeaserCard
-            target="story"
-            image="https://images.unsplash.com/photo-1529636798458-92182e662485?q=80&w=800&auto=format&fit=crop"
-            title="Our Story"
-            blurb="How it all began, from first hello to forever."
-          />
-          <TeaserCard
-            target="details"
-            image="https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?q=80&w=800&auto=format&fit=crop"
-            title="Details"
-            blurb="Venue, timing, dress code — everything you need to know."
-          />
-          <TeaserCard
-            target="gallery"
-            image="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?q=80&w=800&auto=format&fit=crop"
-            title="Gallery"
-            blurb="A few of our favourite moments together so far."
-          />
+      <Section bg="honeydew" index="—" label="Explore">
+        <div className="grid gap-px border border-forest/20 bg-forest/20 sm:grid-cols-3" style={{ perspective: 800 }}>
+          <TeaserCard target="story" num="02" title="Welcome" blurb="A note before the day begins." />
+          <TeaserCard target="details" num="03" title="Details" blurb="Venue, timing, dress code." />
+          <TeaserCard target="gallery" num="04" title="Gallery" blurb="A few favourite moments." />
         </div>
       </Section>
     </div>
